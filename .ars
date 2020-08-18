@@ -1,0 +1,4 @@
+arg0: json2pyclass
+json2pyclass: true
+templates:
+- py3/exe

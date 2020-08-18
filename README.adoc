@@ -1,0 +1,10 @@
+# json2pyclass
+
+json2pyclass program.
+
+## Installation
+
+```sh
+pip install json2pyclass
+```
+
