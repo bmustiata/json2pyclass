@@ -13,7 +13,7 @@ from json2pyclass.types_writer import write_classes
 @click.argument("input_file")
 @click.argument("output_name")
 @click.option("--mode",
-              help="Output mode [class|dict]",
+              help="Output mode [class|dict]. Dict is not yet implemented.",
               default="class",
               show_default=True)
 @click.option("--optionals/--no-optionals",
