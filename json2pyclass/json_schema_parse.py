@@ -20,7 +20,7 @@ class TypeDefinition:
 
 class UnionDefinition:
     def __init__(self, name: str, *items) -> None:
-        self.union_name = name
+        self.class_name = name
         self.items: List[TypeDefinition] = list(items)
         self.description: Optional[str] = None
 
@@ -32,7 +32,7 @@ class TypeAlias:
         if not isinstance(type_definition, TypeDefinition):
             raise Exception(f"Wrong type for {type_definition}")
 
-        self.type_name = name
+        self.class_name = name
         self.type_definition = type_definition
 
 

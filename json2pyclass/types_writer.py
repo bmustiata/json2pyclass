@@ -1,7 +1,8 @@
 import textwrap
 import re
-from typing import TextIO, List, Union
+from typing import TextIO, List, Union, Iterable
 import keyword
+from collections import OrderedDict
 
 from json2pyclass.json_pyclass_config import JsonPyClassConfig
 from json2pyclass.json_schema_parse import ClassDefinition, UnionDefinition, TypeAlias, TypeDefinition
@@ -10,15 +11,45 @@ from json2pyclass.json_schema_parse import ClassDefinition, UnionDefinition, Typ
 NAME_EXTRACTOR = re.compile(r"^.*\.(.+?)$")
 RESERVED_WORDS = set(keyword.kwlist)
 IDENTIFIER_RE = re.compile(r"^[^\d\W]\w*\Z", re.UNICODE)
+NAMESPACE_EXTRACTOR = re.compile(r"^.*\.([^.]+?)\.([^.]+?)$")
+
+
+def get_namespace(class_name: str) -> str:
+    m = NAMESPACE_EXTRACTOR.match(class_name)
+
+    if not m:
+        return class_name.split(".")[0]
+
+    return m.group(1)
+
+
+def filter_classes(found_items: List[Union[ClassDefinition, UnionDefinition, TypeAlias]])\
+        -> Iterable[Union[ClassDefinition, UnionDefinition, TypeAlias]]:
+    result = OrderedDict()
+
+    for item in found_items:
+        cn = class_name(item.class_name)
+
+        if cn not in result:
+            result[cn] = item
+            continue
+
+        # we have a conflict.
+        if get_namespace(item.class_name) == "v1":
+            result[cn] = item
+
+    return result.values()
 
 
 def write_classes(config: JsonPyClassConfig,
                   found_items: List[Union[ClassDefinition, UnionDefinition, TypeAlias]]) -> None:
+    unique_classes = filter_classes(found_items)
+
     with open(config.output_name, "wt", encoding="utf-8") as f:
         # FIXME: have only the required imports
         f.write("from typing import Optional, Union, List, Dict, Any\n\n")
 
-        for c in found_items:
+        for c in unique_classes:
             if isinstance(c, ClassDefinition):
                 write_class(config, f, c)
             elif isinstance(c, UnionDefinition):
@@ -67,22 +98,22 @@ def write_union(config: JsonPyClassConfig,
 
         union_def = "Union[" + ", ".join(typedef_str_items) + "]"
 
-        f.write(f"{class_name(c.union_name)} = {union_def}\n")
+        f.write(f"{class_name(c.class_name)} = {union_def}\n")
     except Exception as e:
-        raise Exception(f"Unable to write union {c.union_name}", e)
+        raise Exception(f"Unable to write union {c.class_name}", e)
 
 
 def write_alias(config: JsonPyClassConfig,
                 f: TextIO,
                 c: TypeAlias) -> None:
-    f.write(f"{class_name(c.type_name)} = {typedef_to_str(config, c.type_definition)}\n")
+    f.write(f"{class_name(c.class_name)} = {typedef_to_str(config, c.type_definition)}\n")
 
 
 def typedef_to_str(config: JsonPyClassConfig,
                    t: TypeDefinition) -> str:
     clazz_type = as_type(t)
 
-    if t.required or config.disable_optionals:
+    if t.required or not config.optionals:
         return clazz_type
 
     return f"Optional[{clazz_type}]"

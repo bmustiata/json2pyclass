@@ -16,19 +16,18 @@ from json2pyclass.types_writer import write_classes
               help="Output mode [class|dict]",
               default="class",
               show_default=True)
-@click.option("--disable-optionals",
+@click.option("--optionals/--no-optionals",
               help="Disable Optional[] generation.",
-              default=False,
-              type=bool,
+              default=True,
               show_default=True)
 def main(input_file: str,
          output_name: str,
          mode: str,
-         disable_optionals: bool) -> None:
+         optionals: bool) -> None:
     config = JsonPyClassConfig(
         output_name=output_name,
         mode=mode,
-        disable_optionals=disable_optionals)
+        optionals=optionals)
 
     with open(input_file, "rt", encoding="utf-8") as f:
         json_data = yaml.safe_load(f)
