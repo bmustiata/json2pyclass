@@ -59,7 +59,7 @@ Assuming we have a definition such as:
 
 We could call:
 
-    json2pyclass mydefinitions.json mydefinitions.py
+    json2pyclass --no-optionals mydefinitions.json mydefinitions.py
 
 And this will yield a file with all the types defined in there:
 

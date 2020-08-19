@@ -67,7 +67,7 @@ We could call:
 
 .. code:: python
 
-    json2pyclass mydefinitions.json mydefinitions.py
+    json2pyclass --no-optionals mydefinitions.json mydefinitions.py
 
 And this will yield a file with all the types defined in there:
 
